@@ -25,5 +25,9 @@
     <target name="run">
         <java jar="build/jar/HelloWorld.jar" fork="true"/>
     </target>
+    
+    <target name="all" depends="clean,compile,jar,run">
+        </target>
+
 
 </project>
