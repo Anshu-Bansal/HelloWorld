@@ -1,37 +1,76 @@
 <?xml version="1.0" ?>
-<project name="AntExample1" default="war">
+<project name="helloworld" default="help" basedir=".">
+<!--Define the properties by the build-->
 
-        <path id="compile.classpath">
-                <fileset dir="WebContent/WEB-INF/lib">
-                        <include name="*.jar"/>
-                </fileset>
-        </path>
+<property name="app.home"  value="helloworld"/>
+<property name="app.version"  value="0.1-dev"/>
+<property name="tcserver.home"  value="/volume/tomcat/apache-tomcat-6.0.29"/>
+<property name="work.home"  value="${basedir}/work"/>
+<property name="dist.home"  value="${basedir}/dist"/>
+<property name="src.home"  value="${basedir}/src"/>
+<property name="web.home"  value="${basedir}/web"/>
 
-        <target name="init">
-                <mkdir dir="build/classes"/>
-                <mkdir dir="dist" />
-        </target>
+<target name="help">
+<echo> You can use the following targets:</echo>
+<echo> </echo>
+<echo> help  :(default) Prints this message </echo>
+<echo> all   : compiles, and packages applicatio</echo>
+<echo> clean : Deletes work directories</echo>
+<echo> compile : Compiled servelets into class files</echo>
+<echo> dist  : packages artifacts into a deployable WAR</echo>
+<echo> </echo>
+<echo> for example, to clean,compile, and package all at once,run:</echo>
+<echo> prompt>ant all </echo>
+</target>
 
-        <target name="compile" depends="init" >
-                <javac destdir="build/classes" debug="true" srcdir="src">
-                        <classpath refid="compile.classpath"/>
-                </javac>
-        </target>
+<!--Define the CLASSPATH-->
+<path id="compile.classpath">
+<fileset dir="${tcserver.home}/bin">
+<include name="*.jar"/>
+</fileset>
+<pathelement location="${tcserver.home}/lib"/>
+<fileset dir="${tcserver.home}/lib">
+<include name="*.jar"/>
+</fileset>
+</path>
 
-        <target name="war" depends="compile">
-                <war destfile="dist/AntExample.war" webxml="WebContent/WEB-INF/web.xml">
-                        <fileset dir="WebContent"/>
-                        <lib dir="WebContent/WEB-INF/lib"/>
-                        <classes dir="build/classes"/>
-                </war>
-        </target>
+<target name="all" depends="compile,dist"
+description="Clean work dirs,then compile and create a WAR"/>
+<!--
+<target name ="clean"
+description="delete old work and dist directories">
+<delete dir="${work.home}"/>
+<delete dir="${dist.home}"/>
+</target>
+-->
 
-        <target name="clean">
-                <delete dir="dist" />
-                <delete dir="build" />
-        </target>
+<target name="prepare"
+description="Create working dirs and copy styatis files to work dir">
+<mkdir dir="${dist.home}"/>
+<mkdir dir="${work.home}/WEBINF/classes"/>
+<!-- Copy static HTML and JSP files to work dir-->
+<copy todir="${work.home}">
+<fileset dir="${web.home}"/>
+</copy>
+</target>
 
-        <target name="all" depends="init,compile,war">
-        </target>
+<target name="compile" depends="prepare"
+description="Compile Java sources and copy to WEB-INF/classes dir">
+<javac srcdir="${src.home}"
+destdir="${work.home}/WEBINF/classes">
+<classpath refid="compile.classpath"/>
+</javac>
+<copy todir="${work.home}/WEBINF/classes">
+<fileset dir="${src.home}" excludes="**/*.java"/>
+</copy>
+
+</target>
+
+<target name="dist" depends="compile"
+description="Create WAR file for binary distribution">
+<jar jarfile="${dist.home}/${app.home}.${app.version}.war"
+basedir="${work.home}"/>
+</target>
 
 </project>
+
